@@ -1,3 +1,4 @@
+# min python>=3.6
 # pip install bokeh
 
 import pandas as pd
@@ -9,9 +10,9 @@ from bokeh.transform import factor_cmap
 
 SITES = ['reddit', 'tagesschau']
 
-def create_chart(site):
+def create_chart(server):
 
-    with open(f'{site}.log') as csv_file:
+    with open(f'{server}.log') as csv_file:
         speed_data = pd.read_csv(csv_file, sep=' ', header=None, names=['site', 'timestamp', 'speed'], parse_dates=['timestamp'])
 
     timeindexed = speed_data.set_index(pd.DatetimeIndex(speed_data['timestamp']))
@@ -20,14 +21,14 @@ def create_chart(site):
     reddit_grouped = grouped[grouped['site'] == 'reddit']
     tagesschau_grouped = grouped[grouped['site'] == 'tagesschau']
 
-    output_file(f"{site}.html")
+    output_file(f"{server}.html")
 
     raw_data_source = ColumnDataSource(speed_data)
     avg_data_source_reddit = ColumnDataSource(reddit_grouped)
     avg_data_source_tagesschau = ColumnDataSource(tagesschau_grouped)
 
     chart = figure(
-        x_axis_type="datetime", width=800, tools="pan,wheel_zoom,box_zoom,reset",
+        title=f'Download Speed from {server}', x_axis_type="datetime", width=800, tools="pan,wheel_zoom,box_zoom,reset",
         y_range=Range1d(0, int(speed_data['speed'].max() * 1.1), bounds=(0,int(speed_data['speed'].max() * 1.1)))
     )
 
@@ -71,7 +72,7 @@ def create_chart(site):
     chart.legend.orientation = "horizontal"
     new_legend = chart.legend[0]
     chart.legend[0].plot = None
-    chart.add_layout(new_legend, 'above')
+    chart.add_layout(new_legend, 'below')
 
     save(chart)
 
