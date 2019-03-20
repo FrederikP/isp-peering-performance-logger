@@ -1,11 +1,14 @@
 # min python>=3.6
-# pip install bokeh
+# pip install bokeh pandas
+
+import json
 
 import pandas as pd
 
 from bokeh.plotting import figure, output_file, save
 from bokeh.models import ColumnDataSource, NumeralTickFormatter, HoverTool, Range1d, DatetimeTickFormatter
 from bokeh.transform import factor_cmap
+from bokeh.embed import json_item
 
 
 SITES = ['reddit', 'tagesschau']
@@ -28,8 +31,9 @@ def create_chart(server):
     avg_data_source_tagesschau = ColumnDataSource(tagesschau_grouped)
 
     chart = figure(
-        title=f'Download Speed from {server}', x_axis_type="datetime", width=800, tools="pan,wheel_zoom,box_zoom,reset",
-        y_range=Range1d(0, int(speed_data['speed'].max() * 1.1), bounds=(0,int(speed_data['speed'].max() * 1.1)))
+        title=f'Download Speed from {server}', x_axis_type="datetime", height=500, width=800, tools="pan,wheel_zoom,box_zoom,reset",
+        y_range=Range1d(0, int(speed_data['speed'].max() * 1.1), bounds=(0,int(speed_data['speed'].max() * 1.1))),
+        sizing_mode='scale_width'
     )
 
     chart.yaxis[0].formatter = NumeralTickFormatter(format="0.000b")
@@ -75,6 +79,9 @@ def create_chart(server):
     chart.add_layout(new_legend, 'below')
 
     save(chart)
+    with open(f'{server}.json', 'w') as json_file:
+        json.dump(json_item(chart), json_file)
+
 
 create_chart('hetzner')
 create_chart('home')

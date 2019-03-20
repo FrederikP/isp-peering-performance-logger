@@ -1,3 +1,6 @@
 .vscode/
 .venv/
-*.html
+home.html
+hetzner.html
+home.json
+hetzner.json
