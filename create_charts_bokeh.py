@@ -1,0 +1,79 @@
+# pip install bokeh
+
+import pandas as pd
+
+from bokeh.plotting import figure, output_file, save
+from bokeh.models import ColumnDataSource, NumeralTickFormatter, HoverTool, Range1d, DatetimeTickFormatter
+from bokeh.transform import factor_cmap
+
+
+SITES = ['reddit', 'tagesschau']
+
+def create_chart(site):
+
+    with open(f'{site}.log') as csv_file:
+        speed_data = pd.read_csv(csv_file, sep=' ', header=None, names=['site', 'timestamp', 'speed'], parse_dates=['timestamp'])
+
+    timeindexed = speed_data.set_index(pd.DatetimeIndex(speed_data['timestamp']))
+    grouped = timeindexed.groupby(['site', pd.Grouper(freq='2h')])
+    grouped = grouped.describe().reset_index()
+    reddit_grouped = grouped[grouped['site'] == 'reddit']
+    tagesschau_grouped = grouped[grouped['site'] == 'tagesschau']
+
+    output_file(f"{site}.html")
+
+    raw_data_source = ColumnDataSource(speed_data)
+    avg_data_source_reddit = ColumnDataSource(reddit_grouped)
+    avg_data_source_tagesschau = ColumnDataSource(tagesschau_grouped)
+
+    chart = figure(
+        x_axis_type="datetime", width=800, tools="pan,wheel_zoom,box_zoom,reset",
+        y_range=Range1d(0, int(speed_data['speed'].max() * 1.1), bounds=(0,int(speed_data['speed'].max() * 1.1)))
+    )
+
+    chart.yaxis[0].formatter = NumeralTickFormatter(format="0.000b")
+    chart.yaxis.axis_label = "downloaded per second"
+
+    chart.xaxis[0].formatter = DatetimeTickFormatter(days=['%Y-%m-%d'])
+    chart.xaxis.axis_label = "date"
+
+    scatter = chart.scatter(x='timestamp', y='speed', source=raw_data_source, color=factor_cmap('site', ['red', 'blue'], SITES), legend="site", fill_alpha=0.2, line_alpha=0.2)
+    line_reddit = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_reddit, line_color='red', legend="reddit average")
+    line_tagesschau = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_tagesschau, line_color='blue', legend="tagesschau average")
+
+    chart.add_tools(HoverTool(
+        tooltips=[
+            ( 'date',   '@timestamp{%Y-%m-%d %H:%M}' ),
+            ( 'speed', '@speed{0.000b}/s' )
+        ],
+
+        formatters={
+            'timestamp': 'datetime'
+        },
+        renderers=[scatter],
+        toggleable= False
+    ))
+
+    chart.add_tools(HoverTool(
+        tooltips=[
+            ( 'date',   '@timestamp_{%Y-%m-%d %H:%M}' ),
+            ( 'speed', '@speed_mean{0.000b}/s' )
+        ],
+
+        formatters={
+            'timestamp_': 'datetime'
+        },
+        renderers=[line_reddit, line_tagesschau],
+        toggleable= False
+    ))
+
+    chart.legend.location = "top_center"
+    chart.legend.orientation = "horizontal"
+    new_legend = chart.legend[0]
+    chart.legend[0].plot = None
+    chart.add_layout(new_legend, 'above')
+
+    save(chart)
+
+create_chart('hetzner')
+create_chart('home')
