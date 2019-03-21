@@ -21,6 +21,9 @@ def create_chart(server):
     timeindexed = speed_data.set_index(pd.DatetimeIndex(speed_data['timestamp']))
     grouped = timeindexed.groupby(['site', pd.Grouper(freq='2h')])
     grouped = grouped.describe().reset_index()
+
+    # Offset to actually have the timestamp in the middle of the 2h timewindow
+    grouped['timestamp'] = grouped['timestamp'] + pd.DateOffset(hours=1)
     reddit_grouped = grouped[grouped['site'] == 'reddit']
     tagesschau_grouped = grouped[grouped['site'] == 'tagesschau']
 
@@ -43,8 +46,8 @@ def create_chart(server):
     chart.xaxis.axis_label = "date"
 
     scatter = chart.scatter(x='timestamp', y='speed', source=raw_data_source, color=factor_cmap('site', ['red', 'blue'], SITES), legend="site", fill_alpha=0.2, line_alpha=0.2)
-    line_reddit = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_reddit, line_color='red', legend="reddit average")
-    line_tagesschau = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_tagesschau, line_color='blue', legend="tagesschau average")
+    line_reddit = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_reddit, line_color='red', legend="reddit average", line_dash='dotted', line_width=3)
+    line_tagesschau = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_tagesschau, line_color='blue', legend="tagesschau average", line_dash='dashed', line_width=3)
 
     chart.add_tools(HoverTool(
         tooltips=[
