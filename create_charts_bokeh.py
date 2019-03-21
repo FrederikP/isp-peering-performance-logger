@@ -75,11 +75,13 @@ def create_chart(server):
         toggleable= False
     ))
 
-    chart.legend.location = "top_center"
-    chart.legend.orientation = "horizontal"
+    chart.legend.location = 'top_center'
+    chart.legend.orientation = 'horizontal'
     new_legend = chart.legend[0]
     chart.legend[0].plot = None
     chart.add_layout(new_legend, 'below')
+
+    chart.legend.click_policy = 'hide'
 
     save(chart)
     with open(f'{server}.json', 'w') as json_file:
