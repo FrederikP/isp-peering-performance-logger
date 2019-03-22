@@ -3,7 +3,10 @@
 
 import json
 
+from datetime import datetime, timedelta
+
 import pandas as pd
+import pytz
 
 from bokeh.plotting import figure, output_file, save
 from bokeh.models import ColumnDataSource, NumeralTickFormatter, HoverTool, Range1d, DatetimeTickFormatter
@@ -33,9 +36,13 @@ def create_chart(server):
     avg_data_source_reddit = ColumnDataSource(reddit_grouped)
     avg_data_source_tagesschau = ColumnDataSource(tagesschau_grouped)
 
+    now = datetime.utcnow().replace(tzinfo=pytz.utc)
+    week_ago = now - timedelta(days=7)
+
     chart = figure(
         title=f'Download Speed from {server}', x_axis_type="datetime", height=500, width=800, tools="pan,wheel_zoom,box_zoom,reset",
         y_range=Range1d(0, int(speed_data['speed'].max() * 1.1), bounds=(0,int(speed_data['speed'].max() * 1.1))),
+        x_range=Range1d(week_ago, now, bounds=(speed_data['timestamp'].min(), now)),
         sizing_mode='scale_width'
     )
 
@@ -43,9 +50,9 @@ def create_chart(server):
     chart.yaxis.axis_label = "downloaded per second"
 
     chart.xaxis[0].formatter = DatetimeTickFormatter(days=['%Y-%m-%d'])
-    chart.xaxis.axis_label = "date"
+    chart.xaxis.axis_label = "date (UTC)"
 
-    scatter = chart.scatter(x='timestamp', y='speed', source=raw_data_source, color=factor_cmap('site', ['red', 'blue'], SITES), legend="site", fill_alpha=0.2, line_alpha=0.2)
+    scatter = chart.scatter(x='timestamp', y='speed', source=raw_data_source, color=factor_cmap('site', ['red', 'blue'], SITES), legend="site", fill_alpha=0.1, line_alpha=0)
     line_reddit = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_reddit, line_color='red', legend="reddit average", line_dash='dotted', line_width=3)
     line_tagesschau = chart.line(x='timestamp_', y='speed_mean', source=avg_data_source_tagesschau, line_color='blue', legend="tagesschau average", line_dash='dashed', line_width=3)
 
