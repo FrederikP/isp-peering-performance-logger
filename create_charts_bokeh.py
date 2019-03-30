@@ -22,9 +22,7 @@ def create_chart(server):
         speed_data = pd.read_csv(csv_file, sep=' ', header=None, names=['site', 'timestamp', 'speed'], parse_dates=['timestamp'])
     
     # Remove data that was measured when video snippet had been taken down
-    print(len(speed_data))
     speed_data = speed_data[((speed_data.site != 'tagesschau') | (speed_data.timestamp < datetime(2019, 3, 23, 8, 35, tzinfo=pytz.utc)))]
-    print(len(speed_data))
 
     # Normalize tagesschau/ard
     speed_data.loc[speed_data.site == 'tagesschau', 'site'] = 'ard'
