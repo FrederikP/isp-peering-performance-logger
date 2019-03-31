@@ -20,12 +20,16 @@ def create_chart(server):
 
     with open(f'{server}.log') as csv_file:
         speed_data = pd.read_csv(csv_file, sep=' ', header=None, names=['site', 'timestamp', 'speed'], parse_dates=['timestamp'])
-    
+
     # Remove data that was measured when video snippet had been taken down
     speed_data = speed_data[((speed_data.site != 'tagesschau') | (speed_data.timestamp < datetime(2019, 3, 23, 8, 35, tzinfo=pytz.utc)))]
 
     # Normalize tagesschau/ard
     speed_data.loc[speed_data.site == 'tagesschau', 'site'] = 'ard'
+
+    print(speed_data['timestamp'])
+    speed_data['timestamp'] = pd.to_datetime(speed_data['timestamp'], utc=True)
+    print(speed_data['timestamp'])
 
     timeindexed = speed_data.set_index(pd.DatetimeIndex(speed_data['timestamp']))
     grouped = timeindexed.groupby(['site', pd.Grouper(freq='2h')])
