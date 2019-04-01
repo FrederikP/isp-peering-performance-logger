@@ -27,9 +27,7 @@ def create_chart(server):
     # Normalize tagesschau/ard
     speed_data.loc[speed_data.site == 'tagesschau', 'site'] = 'ard'
 
-    print(speed_data['timestamp'])
     speed_data['timestamp'] = pd.to_datetime(speed_data['timestamp'], utc=True)
-    print(speed_data['timestamp'])
 
     timeindexed = speed_data.set_index(pd.DatetimeIndex(speed_data['timestamp']))
     grouped = timeindexed.groupby(['site', pd.Grouper(freq='2h')])
