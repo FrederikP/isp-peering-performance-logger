@@ -36,7 +36,10 @@ def create_chart(server):
     # Offset to actually have the timestamp in the middle of the 2h timewindow
     grouped['timestamp'] = grouped['timestamp'] + pd.DateOffset(hours=1)
     reddit_grouped = grouped[grouped['site'] == 'reddit']
+    reddit_grouped = reddit_grouped.sort_values(by='timestamp')
+
     ard_grouped = grouped[grouped['site'] == 'ard']
+    ard_grouped = ard_grouped.sort_values(by='timestamp')
 
     output_file(f"{server}.html")
 
